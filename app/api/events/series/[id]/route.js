@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { isAuthed } from '@/lib/auth';
-import { validateEvent } from '@/lib/validate';
+import { validateEvent, isRealDate } from '@/lib/validate';
 import { updateSeriesTx, deleteSeriesTx } from '@/lib/event-writes';
 
 async function guard() {
@@ -30,13 +30,19 @@ export async function PUT(request, { params }) {
   return NextResponse.json({ updated: n });
 }
 
-// Delete every occurrence in a series (each snapshotted to the audit log first).
+// Delete every occurrence in a series (each snapshotted to the audit log first). `?from=YYYY-MM-DD`
+// narrows it to that date onward — the modal's "this and following" scope.
 export async function DELETE(request, { params }) {
   const g = await guard();
   if (g) return g;
 
   const { id } = await params;
-  const n = deleteSeriesTx(id);
+  const from = new URL(request.url).searchParams.get('from');
+  // Same shape as the GET /api/events range check. Validate BEFORE the tx so a bad date deletes nothing.
+  if (from !== null && !isRealDate(from)) {
+    return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
+  }
+  const n = deleteSeriesTx(id, from);
   if (!n) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ deleted: n });
 }
