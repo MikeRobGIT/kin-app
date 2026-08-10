@@ -1,0 +1,27 @@
+# Litestream config — continuous replication of the SQLite record to Cloudflare R2.
+# Baked into the app image at /etc/litestream.yml (Dockerfile). Litestream runs INSIDE
+# the app container via docker-entrypoint.sh (`litestream replicate -exec "node server.js"`),
+# because Coolify deploys this image directly (Dockerfile build pack), not docker-compose.
+#
+# This uses the Litestream 0.3.x config shape (binary pinned to 0.3.14 in the Dockerfile).
+# R2 is S3-compatible; "region: auto" is what R2 expects.
+# Credentials and bucket come from the environment (set in Coolify, never committed).
+#
+# WAL reconciliation: the app checkpoints the WAL (wal_checkpoint(TRUNCATE)) on
+# SIGTERM/SIGINT (lib/db.js). Litestream 0.3.x tolerates external checkpoints and
+# resyncs as needed, so no app-side wal_autocheckpoint/busy_timeout change is required.
+#
+# NOTE on Litestream 0.5.x: the 0.5 line uses a URL-based replica form
+#   (`replica: { url: s3://bucket/path?endpoint=... }` with top-level
+#   access-key-id/secret-access-key) and is NOT a drop-in for the block below.
+#   Stay on the pinned 0.3.x image unless you also migrate this file.
+dbs:
+  - path: /app/data/tracker.db
+    replicas:
+      - type: s3
+        bucket: ${R2_BUCKET}
+        path: tracker
+        endpoint: ${R2_ENDPOINT}        # https://<accountid>.r2.cloudflarestorage.com
+        region: auto
+        access-key-id: ${R2_ACCESS_KEY_ID}
+        secret-access-key: ${R2_SECRET_ACCESS_KEY}

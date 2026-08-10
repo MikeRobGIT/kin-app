@@ -1,0 +1,9 @@
+node_modules
+.next
+/data
+.env
+.env.local
+*.log
+.DS_Store
+graphify-out
+.playwright-mcp/

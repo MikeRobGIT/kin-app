@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # If you prefer a prebuilt image, comment out `build:` above and set `image:`.
+    restart: unless-stopped
+    environment:
+      # REQUIRED — set these in Coolify's environment variables UI.
+      # APP_PASSWORD: the password you'll use to log in.
+      # AUTH_SECRET:  a long random string used to sign session cookies.
+      APP_PASSWORD: ${APP_PASSWORD:?set APP_PASSWORD}
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET}
+      NODE_ENV: production
+      DATA_DIR: /app/data
+      # OPTIONAL — set all four to enable continuous Litestream backups to Cloudflare R2.
+      # Litestream runs INSIDE this container (see Dockerfile + docker-entrypoint.sh), so
+      # there is no separate sidecar. When these are unset the app starts without backups.
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+    volumes:
+      - tracker_data:/app/data
+    ports:
+      # Coolify usually manages the proxy; this is handy for local runs.
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  tracker_data:

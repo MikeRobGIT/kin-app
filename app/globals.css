@@ -1,0 +1,403 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Spline+Sans+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root{
+  --ink:#1c1b1a;
+  --paper:#f6f2ea;
+  --card:#fffdf8;
+  --line:#e3dccd;
+  --muted:#8a8275;
+  --accent:#c8553d;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Outfit',sans-serif;
+  background:
+    radial-gradient(circle at 12% 8%, #fcf8f0 0%, transparent 45%),
+    radial-gradient(circle at 88% 92%, #f0eadd 0%, transparent 40%),
+    var(--paper);
+  color:var(--ink);
+  line-height:1.45;
+  min-height:100vh;
+}
+
+/* header */
+header{
+  border-bottom:2px solid var(--ink);
+  padding:24px 32px 18px;
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px;justify-content:space-between;
+}
+.titleblock h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(26px,5vw,44px);letter-spacing:-.02em;line-height:.95;}
+.titleblock h1 em{font-style:italic;color:var(--accent);}
+.titleblock p{font-family:'Spline Sans Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.18em;margin-top:8px;}
+.legend{max-width:520px;text-align:right;}
+.legend-summary{font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;display:inline-block;border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--muted);list-style:none;}
+.legend-summary::-webkit-details-marker{display:none;}
+.legend-summary::after{content:'  +';}
+.legend[open] .legend-summary::after{content:'  \2212';}
+.legend-items{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:flex-end;margin-top:8px;}
+.legend .item{font-family:'Spline Sans Mono',monospace;font-size:10.5px;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.05em;}
+.swatch{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.12);}
+
+/* controls */
+.controls{padding:16px 32px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;border-bottom:1px solid var(--line);}
+.tabs{display:flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;}
+.tabs button{font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;background:transparent;border:none;cursor:pointer;padding:9px 18px;color:var(--ink);transition:.18s;}
+.tabs button.active{background:var(--ink);color:var(--paper);}
+.nav{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.nav button,.btn{font-family:'Spline Sans Mono',monospace;font-size:12px;border:1.5px solid var(--ink);background:var(--card);border-radius:8px;padding:8px 13px;cursor:pointer;transition:.15s;letter-spacing:.04em;color:var(--ink);}
+.nav button:hover,.btn:hover{background:var(--ink);color:var(--paper);}
+.periodlabel{font-family:'Fraunces',serif;font-weight:600;font-size:19px;min-width:210px;text-align:center;}
+.btn-add{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+.btn-add:hover{background:#a8402c;border-color:#a8402c;color:#fff;}
+
+main{padding:24px 32px 60px;}
+
+/* week grid */
+.week-grid{display:grid;grid-template-columns:64px repeat(7,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);}
+.week-grid .corner,.week-grid .dayhead{background:#efe9dd;border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:10px 6px;text-align:center;}
+.week-grid .dayhead{font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
+.week-grid .dayhead .dnum{font-family:'Fraunces',serif;font-size:20px;font-weight:600;display:block;margin-top:2px;}
+.week-grid .dayhead.today{background:var(--ink);color:var(--paper);}
+.timecell{font-family:'Spline Sans Mono',monospace;font-size:10px;color:var(--muted);text-align:right;padding:6px 6px 0 0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);height:56px;}
+.slot{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:56px;padding:3px;position:relative;cursor:pointer;transition:background .12s;}
+.slot:hover{background:#faf5ea;}
+
+/* chip */
+.chip{border-radius:7px;padding:4px 7px;margin-bottom:3px;font-size:11px;line-height:1.25;border-left:4px solid var(--muted);cursor:pointer;transition:transform .1s;}
+.chip:hover{transform:translateX(2px);}
+.chip .t{font-family:'Spline Sans Mono',monospace;font-size:9.5px;letter-spacing:.03em;opacity:.8;}
+.chip .ttl{font-weight:600;}
+.chip .meta{font-size:9.5px;opacity:.82;display:flex;align-items:center;gap:4px;margin-top:1px;flex-wrap:wrap;}
+.chip .dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.chip .pd{font-family:'Spline Sans Mono',monospace;font-weight:600;text-transform:uppercase;font-size:8.5px;letter-spacing:.05em;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,.07);}
+
+/* daily */
+.day-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:2px;}
+.day-row{display:grid;grid-template-columns:72px 1fr;gap:14px;border-bottom:1px solid var(--line);padding:7px 0;min-height:46px;}
+.day-row .hr{font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--muted);padding-top:4px;text-align:right;}
+.day-row .ev{display:flex;flex-direction:column;gap:4px;}
+.day-row.empty .ev{opacity:.4;}
+.day-row .add-inline{font-size:11px;color:var(--muted);cursor:pointer;align-self:center;}
+.day-row .add-inline:hover{color:var(--accent);}
+
+/* stacked week — phones only; .week-stack and .week-grid swap at the 640px breakpoint.
+   Reuses the .day-row/.hr/.ev row idiom above. */
+.week-stack{display:none;flex-direction:column;gap:22px;}
+.wk-day-head{display:flex;align-items:baseline;gap:8px;font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--ink);padding:4px 6px;margin-bottom:8px;}
+.wk-day-head .dnum{font-family:'Fraunces',serif;font-size:20px;font-weight:600;}
+.wk-day.today .wk-day-head{background:var(--ink);color:var(--paper);border-radius:8px 8px 0 0;}
+.week-stack .day-row:last-child{border-bottom:none;}
+
+/* monthly */
+.month-grid{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);}
+.month-grid .mh{background:#efe9dd;font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:9px;text-align:center;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+.mcell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:104px;padding:6px;cursor:pointer;position:relative;transition:background .12s;}
+.mcell:hover{background:#faf5ea;}
+.mcell.dim{background:#f1ece2;color:var(--muted);}
+.mcell .dn{font-family:'Fraunces',serif;font-weight:600;font-size:15px;}
+.mcell.today .dn{background:var(--ink);color:var(--paper);border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;}
+.mini{font-size:9.5px;border-radius:4px;padding:1px 4px;margin-top:3px;border-left:3px solid var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.more{font-size:9px;color:var(--muted);margin-top:2px;cursor:pointer;}
+/* phone month view: event chips collapse to child-colored dots (shown only ≤640px) */
+.mini-dots{display:none;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.mini-dot{width:9px;height:9px;border-radius:50%;border:1px solid rgba(0,0,0,.15);flex:0 0 auto;}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(28,27,26,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px;}
+.modal{background:var(--card);border:2px solid var(--ink);border-radius:16px;width:100%;max-width:430px;padding:26px;box-shadow:10px 10px 0 rgba(28,27,26,.12);max-height:92vh;overflow:auto;}
+.modal h2{font-family:'Fraunces',serif;font-size:24px;margin-bottom:18px;}
+.field{margin-bottom:14px;}
+.field label{font-family:'Spline Sans Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:5px;}
+.field input,.field select{width:100%;font-family:'Outfit',sans-serif;font-size:14px;padding:9px 11px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field .err{color:var(--accent);font-size:13px;margin-top:6px;}
+/* visible keyboard focus indicator for every interactive element */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.seg{display:flex;gap:6px;}
+.seg label{flex:1;cursor:pointer;}
+.seg input{display:none;}
+.seg span{display:block;text-align:center;padding:8px;border:1.5px solid var(--line);border-radius:8px;font-size:12px;font-family:'Spline Sans Mono',monospace;text-transform:uppercase;letter-spacing:.05em;transition:.15s;}
+.seg input:checked+span{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.modal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+.modal-actions .btn{flex:1;text-align:center;padding:11px;}
+.btn-save{background:var(--ink);color:var(--paper);}
+.btn-del{border-color:var(--accent);color:var(--accent);}
+.btn-del:hover{background:var(--accent);color:#fff;}
+
+/* recurring "Repeat" control (add modal) — 7 weekday toggles fill the row so they stay compact at 375px */
+.repeat .rpt-grid{display:flex;gap:4px;}
+.rpt-day{flex:1;min-width:0;height:32px;padding:0;border:1.5px solid var(--line);border-radius:7px;background:#fff;cursor:pointer;font-family:'Spline Sans Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);}
+.rpt-day.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+.rpt-opts{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;}
+.rpt-inline{display:flex;align-items:center;gap:6px;font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);}
+.rpt-inline input{width:54px;text-align:center;}
+.rpt-opts .rpt-end{flex:0 0 auto;}
+.rpt-opts input[type=date]{flex:1;min-width:128px;}
+/* series edit notice (higher specificity than .field label so it isn't styled as an uppercase caps label) */
+.series-note label{display:flex;align-items:center;gap:8px;margin:0;font-family:'Outfit',sans-serif;font-size:13px;text-transform:none;letter-spacing:normal;color:var(--ink);cursor:pointer;}
+.series-note label input{width:16px;height:16px;accent-color:var(--accent);}
+
+/* login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+.login-card{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:36px;width:100%;max-width:380px;box-shadow:10px 10px 0 rgba(28,27,26,.12);}
+.login-card h1{font-family:'Fraunces',serif;font-weight:900;font-size:30px;letter-spacing:-.02em;}
+.login-card h1 em{font-style:italic;color:var(--accent);}
+.login-card p{font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.16em;margin:6px 0 24px;}
+.login-card .err{color:var(--accent);font-size:13px;margin-top:10px;min-height:18px;}
+.login-card .btn{width:100%;margin-top:16px;padding:12px;justify-content:center;}
+
+.loading{padding:60px;text-align:center;color:var(--muted);font-family:'Spline Sans Mono',monospace;}
+
+/* parent-time overlay */
+.swatch-parent{border-radius:50%;}
+.pt-toggle{display:flex;align-items:center;gap:6px;font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);cursor:pointer;}
+.pt-toggle input{width:15px;height:15px;accent-color:var(--ink);}
+.week-grid .pt-rail{background:#efe9dd;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+.week-grid .parent-band{border-bottom:1px solid var(--line);border-right:1px solid var(--line);font-family:'Spline Sans Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;padding:4px;text-align:center;color:var(--ink);min-height:24px;display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.week-grid .parent-band.handoff{box-shadow:inset 2px 0 0 var(--ink);}
+.day-parent-banner{border:1.5px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-family:'Spline Sans Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.06em;text-align:center;color:var(--ink);}
+.mcell-parent-badge{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:var(--card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Spline Sans Mono',monospace;font-size:9px;font-weight:700;line-height:1;}
+
+/* next-2-days agenda (read-only) — event rows reuse .chip */
+.agenda-day{margin-bottom:18px;}
+.agenda-day:last-of-type{margin-bottom:6px;}
+.agenda-day h3{font-family:'Spline Sans Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:8px;}
+.agenda-parent{font-size:11px;border:1.5px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink);letter-spacing:.04em;}
+.agenda-empty{font-size:12px;color:var(--muted);font-style:italic;padding:2px 0 4px;}
+.chip-ro{cursor:default;}
+.chip-ro:hover{transform:none;}
+
+/* schedule manager */
+.pt-modal{max-width:560px;}
+.pt-h3{font-family:'Fraunces',serif;font-weight:600;font-size:16px;margin:20px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line);}
+.pt-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.pt-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;}
+.pt-row-main{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.pt-row-main strong{font-size:13px;}
+.pt-muted{font-family:'Spline Sans Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.pt-row-actions{display:flex;gap:10px;flex:0 0 auto;}
+.pt-del{color:var(--accent);}
+.pt-editor{border:1.5px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:8px;}
+.pt-editor-head{font-family:'Spline Sans Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+.pt-check{display:flex;align-items:center;gap:8px;font-size:13px;margin:4px 0 12px;cursor:pointer;}
+.pt-check input{width:15px;height:15px;accent-color:var(--ink);}
+.pt-cyclelen{margin-bottom:10px;}
+.pt-grid{display:flex;flex-wrap:wrap;gap:4px;}
+.pt-daybtn{width:30px;height:30px;border:1.5px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;font-family:'Spline Sans Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);}
+.pt-daybtn.a{background:#dde9f3;}
+.pt-daybtn.b{background:#f6dde8;}
+.pt-split{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 8px;font-family:'Spline Sans Mono',monospace;font-size:11px;}
+.pt-split-item{display:flex;align-items:center;gap:6px;}
+.pt-preview{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.pt-prevday{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:34px;padding:4px 2px;border:1px solid var(--line);border-radius:6px;font-family:'Spline Sans Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;}
+.pt-prevday em{font-style:normal;font-size:12px;font-weight:700;color:var(--ink);margin-top:2px;}
+
+/* print */
+@media print{
+  @page{size:landscape;margin:12mm;}
+  body{background:#fff;}
+  .controls,.nav,.btn-add,.tabs,.overlay,.report-controls,.no-print{display:none!important;}
+  header{border-bottom:1.5px solid #000;}
+  /* the legend collapses on screen (native <details>) but the printed calendar
+     still needs the color key — force it open and drop the toggle pill. Closed
+     <details> hides content two ways: display:none on children (older engines)
+     and content-visibility:hidden on ::details-content (Chrome 128+) — override both. */
+  .legend-summary{display:none!important;}
+  .legend-items{display:flex!important;}
+  .legend::details-content{content-visibility:visible!important;}
+  main{padding:8px 0;}
+  .slot,.mcell{cursor:default;}
+  /* keep color-encoded meaning when printed */
+  .chip,.mini,.dayhead.today,.mcell.today .dn,.swatch,.chip .dot,.chip .pd,.report-table th,.report-table tfoot td,.parent-band,.day-parent-banner,.mcell-parent-badge,.mcell{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+
+/* responsive — phones / narrow screens */
+@media (max-width:640px){
+  header{padding:16px 16px 12px;}
+  .legend{max-width:none;text-align:left;}
+  .legend-items{justify-content:flex-start;}
+  .controls{padding:12px 16px;}
+  .nav{margin-left:0;}
+  .periodlabel{min-width:auto;font-size:17px;}
+  main{padding:16px;overflow-x:auto;}
+  /* phones swap the horizontally-panning week grid for stacked day sections,
+     and month text-chips for dots — both dual-rendered, CSS picks one. */
+  .week-grid{display:none;}
+  .week-stack{display:flex;}
+  .mcell .mini{display:none;}
+  .mini-dots{display:flex;}
+  .mcell{min-height:78px;padding:4px;}
+  .mcell .dn{font-size:13px;}
+}
+
+/* touch / kiosk — coarse pointers (wall display, tablets) get ≥44px targets; desktop unchanged */
+@media (pointer: coarse){
+  button,input,select,label,a,.chip,.mini,.more,.slot,.mcell,.add-inline{touch-action:manipulation;}
+  .tabs button{min-height:44px;padding:12px 20px;}
+  .nav button,.btn{min-height:44px;padding:10px 16px;}
+  .seg span{min-height:44px;padding:13px 8px;}
+  .rpt-day{height:44px;}
+  .pt-daybtn{width:44px;height:44px;} /* .pt-grid wraps, so 28 still fit the modal */
+  .bf-link{min-height:44px;padding:12px 10px;}
+  .pt-row-actions{gap:16px;}
+  .pt-toggle input,.pt-check input,.bf-row input,.series-note label input{width:22px;height:22px;}
+  .bf-row{padding:10px 8px;}
+  .pt-toggle,.pt-check{min-height:44px;}
+  /* 16px inputs stop iOS from auto-zooming on focus */
+  .field input,.field select{font-size:16px;padding:12px 11px;}
+  .quickadd input{font-size:16px;}
+  .chip{padding:8px 9px;font-size:12.5px;}
+  .mini{font-size:12px;padding:3px 6px;}
+  .more{font-size:11px;padding:4px 0;}
+  /* no hover on a kiosk — the day-view add affordance must be visible at rest,
+     and the tap target itself (the span) must reach 44px (row min-height alone doesn't) */
+  .day-row .add-inline{color:var(--accent);font-size:13px;padding:10px 0;min-height:44px;display:inline-flex;align-items:center;}
+}
+
+/* involvement report */
+.report{padding:24px 32px 60px;max-width:1100px;margin:0 auto;}
+.report-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;}
+.report-controls label{font-family:'Spline Sans Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.report-controls input,.report-controls select{font-family:'Outfit',sans-serif;font-size:13px;padding:6px 9px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);text-transform:none;letter-spacing:0;}
+.report-head{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px;}
+.report-head h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(22px,4vw,34px);letter-spacing:-.02em;}
+.report-meta{font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;}
+.report-note{font-size:12px;color:var(--muted);margin-top:8px;font-style:italic;}
+.report-h2{font-family:'Fraunces',serif;font-weight:600;font-size:20px;margin:24px 0 10px;}
+.report-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:13px;}
+/* Wide data tables (e.g. the settings token list, 2 datetime columns) pan inside this wrapper
+   at narrow viewports instead of overflowing the page (375px house rule). */
+.table-scroll{overflow-x:auto;}
+/* Calendar-subscription add form: give the URL field usable width (a pasted .ics link is long) and
+   keep it from overflowing a narrow viewport; group the per-row Sync/Delete buttons with a gap. */
+.sub-url{min-width:min(320px,60vw);}
+.sub-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+/* Per-event routing rules (v13): one row per title group — key, child picker, activity picker,
+   title, Save. Lives OUTSIDE .table-scroll and wraps rather than panning, so a long title key and
+   the touch-sized controls can't push the page sideways at 375px. The key takes a row of its own
+   (flex-basis 100%) and overflow-wrap breaks one with no spaces in it. Touch sizing for these
+   controls lives in the (pointer: coarse) block near the end of this file — nothing above covers
+   them, so they were UA-default sized until v14. */
+.sub-rules{margin-top:14px;max-width:560px;}
+.sub-rules summary{font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);cursor:pointer;}
+.sub-rules .report-note{margin:10px 0 4px;}
+.sub-rule{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:7px 0;border-bottom:1px solid var(--line);}
+.sub-rule-key{flex:1 1 100%;min-width:0;overflow-wrap:anywhere;font-size:13px;font-weight:600;}
+.sub-rule select{flex:0 1 auto;min-width:130px;max-width:100%;}
+.sub-rule-title{flex:1 1 160px;min-width:0;}
+/* The feed editor strip: same flex row as .sub-rule (so the (pointer: coarse) sizing below covers
+   its input and selects), sitting under the subscription table rather than inside a <td>. */
+.sub-edit{max-width:560px;margin-top:6px;border-bottom:none;}
+.report-table th,.report-table td{border:1px solid var(--line);padding:7px 9px;text-align:center;}
+.report-table th{background:#efe9dd;font-family:'Spline Sans Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
+.report-table .rowlab{text-align:left;font-weight:600;}
+.report-table .tot{font-weight:700;}
+.report-table .muted{color:var(--muted);font-size:11px;}
+.report-table tfoot td{background:#f1ece2;font-weight:700;}
+.report-table.detail td{text-align:left;}
+
+/* monthly record seals */
+.seal-status{font-size:13px;margin:2px 0 14px;padding:9px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);}
+.seal-status.ok{color:#1f7a4d;border-color:#1f7a4d;}
+.seal-status.tamper{color:var(--accent);border-color:var(--accent);}
+.seal-digest{font-family:'Spline Sans Mono',monospace;font-size:11px;}
+
+/* lawyer share links */
+.share-url{display:block;font-family:'Spline Sans Mono',monospace;font-size:12px;width:100%;max-width:560px;margin-top:8px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);}
+.share-invalid{font-size:15px;color:var(--accent);text-align:center;padding:48px 20px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);max-width:560px;margin:40px auto;}
+
+/* agent (MCP) setup snippets */
+.mcp-setup{max-width:560px;margin:4px 0 6px;}
+.mcp-setup .setup-agent{border:1.5px solid var(--line);border-radius:8px;background:var(--card);margin-bottom:8px;padding:0 12px;}
+.mcp-setup summary{font-family:'Spline Sans Mono',monospace;font-size:12px;letter-spacing:.04em;cursor:pointer;padding:9px 0;color:var(--ink);}
+.mcp-setup .setup-hint{font-size:12px;color:var(--muted);margin:10px 0 4px;}
+.code-wrap{margin:0 0 10px;}
+.code-bar{display:flex;justify-content:flex-end;margin-bottom:4px;}
+.btn-copy{font-size:10px;padding:3px 9px;}
+/* minted token / connector-url fields with an inline Copy button */
+.copy-field{margin-top:10px;}
+.copy-field .cf-label{display:block;font-size:12px;margin-bottom:2px;}
+.copy-row{display:flex;gap:8px;align-items:center;max-width:560px;}
+.copy-row .share-url{flex:1;min-width:0;max-width:none;margin-top:0;}
+.copy-row .btn-copy{flex:none;}
+.code-block{font-family:'Spline Sans Mono',monospace;font-size:12px;line-height:1.5;white-space:pre;overflow-x:auto;background:var(--paper);border:1.5px solid var(--line);border-radius:6px;padding:9px 11px;margin:0;color:var(--ink);}
+
+/* family (children & parents) manager */
+.family-sub{font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px;}
+.family-list{max-width:460px;}
+.family-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:7px;}
+.family-row input[type="text"]{flex:1;min-width:120px;font-family:'Outfit',sans-serif;font-size:14px;padding:7px 9px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);}
+.family-row input[type="color"]{width:34px;height:34px;flex:none;padding:2px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;}
+.family-row .btn{flex:none;}
+.family-add{margin-top:4px;}
+.family-archived{margin-top:8px;max-width:460px;}
+.family-archived summary{font-family:'Spline Sans Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);cursor:pointer;padding:6px 0;}
+.family-arch-row{opacity:.72;}
+.family-dot{width:14px;height:14px;border-radius:50%;flex:none;border:1px solid var(--line);}
+.family-arch-name{flex:1;min-width:100px;font-size:14px;}
+.pt-warn{font-size:12.5px;line-height:1.4;color:var(--accent);background:#f6e7e2;border:1.5px solid var(--accent);border-radius:8px;padding:8px 10px;margin:2px 0 10px;}
+
+/* backfill preview (recurring quick-add) */
+.bf-summary{font-family:'Spline Sans Mono',monospace;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:18px 0 8px;}
+.bf-trunc{color:var(--accent);}
+.bf-bar{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;}
+.bf-link{background:none;border:none;color:var(--accent);font:inherit;font-size:12px;cursor:pointer;padding:0;text-decoration:underline;}
+.bf-list{max-height:240px;overflow:auto;border:1.5px solid var(--line);border-radius:8px;padding:4px;background:#fff;}
+.bf-row{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13.5px;}
+.bf-row:hover{background:var(--paper);}
+.bf-row input{width:15px;height:15px;accent-color:var(--ink);}
+
+/* AI quick-add bar */
+.quickadd{display:flex;gap:10px;align-items:center;padding:12px 32px;border-bottom:1px solid var(--line);}
+.quickadd input{flex:1;font-family:'Outfit',sans-serif;font-size:14px;padding:10px 13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);}
+.quickadd input:focus{outline:none;border-color:var(--accent);}
+.quickadd .btn{white-space:nowrap;}
+.quickadd .btn:disabled{opacity:.6;cursor:default;}
+.report-table .edited { color: #9a3b3b; font-style: italic; }
+
+/* ── responsive additions ──────────────────────────────────────────────
+   These selectors' base rules are defined ABOVE, but AFTER the main
+   responsive blocks (lines 207-242). Media queries add no specificity, so
+   overrides for them must come later in source order — keep them here. */
+@media (max-width:640px){
+  .report{padding:16px 16px 48px;}      /* base 24px 32px 60px (:245) — Settings/Report/Share render inside .report, not <main> */
+  .quickadd{padding:12px 16px;}         /* base 12px 32px (:318) */
+  /* full-viewport modal sheet — 100dvh tracks the iOS URL bar; own scroll,
+     sticky actions bar so Save/Cancel stay reachable. Desktop keeps the
+     centered card (base .modal/.overlay, :97-98). max-width:none also un-caps
+     .pt-modal's 560px (:163) by source order. */
+  .overlay{padding:0;}
+  .modal{
+    max-width:none;
+    height:100vh;height:100dvh;         /* vh = fallback for pre-dvh Safari */
+    max-height:none;
+    border:none;border-radius:0;box-shadow:none;
+    padding:calc(16px + env(safe-area-inset-top,0px)) 16px 0;
+  }
+  /* Scoped to the modal's FINAL actions bar only — ScheduleManager nests two
+     more .modal-actions inside .pt-editor that must scroll with their editor. */
+  .modal > .modal-actions{
+    position:sticky;bottom:0;z-index:1;
+    background:var(--card);border-top:1px solid var(--line);
+    margin:22px -16px 0;                 /* bleed over the modal's 16px side padding */
+    padding:12px 16px;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  }
+}
+@media (pointer: coarse){
+  /* 16px inputs stop iOS from auto-zooming on focus (same idiom as :235-236) */
+  .report-controls input,.report-controls select{font-size:16px;padding:9px 11px;}
+  .family-row input[type="text"]{font-size:16px;}
+  .share-url{font-size:16px;}
+  /* The subscription rule rows match NO selector above — they sat at the ~13px UA default with no
+     touch target. Two selects and a text input per row now, so size them properly. */
+  .sub-rule select,.sub-rule input{font-size:16px;min-height:44px;}
+  /* ≥44px touch targets */
+  .family-row input[type="color"]{width:44px;height:44px;}
+  .nav button{min-width:44px;}          /* ‹ / › are ~40px wide with one glyph */
+  .more{min-height:44px;display:flex;align-items:center;}  /* .mcell has min-height, so cells grow to fit */
+  .btn-copy{font-size:12px;padding:8px 12px;}  /* .btn-copy has .btn → already 44px tall via :225; this fixes the 10px text + width */
+}

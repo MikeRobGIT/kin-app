@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "kin": {
+      "type": "http",
+      "url": "https://kin.example.com/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${KIN_MCP_TOKEN}"
+      }
+    }
+  }
+}

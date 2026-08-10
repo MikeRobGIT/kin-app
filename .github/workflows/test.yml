@@ -1,0 +1,27 @@
+# Unit tests (node --test). TZ is pinned to a DST-observing zone so the
+# eachDay/overnightCounts DST-boundary tests actually exercise DST — they are
+# vacuous under the runner's default UTC (IB-08).
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
