@@ -114,3 +114,8 @@
   explicit count check.)
 - **No `Co-Authored-By`** anywhere. **Never self-merge.**
 - Deploy = push to `main` (Coolify auto-deploys kin.example.com); Litestream→R2 runs in-container.
+- **This repo is public and is now the only repo** (the private dev repo was retired). There is
+  no staging area to catch a slip before it ships — every commit, PR, comment, and backlog entry
+  here is world-readable the moment it's pushed. Never commit real names, a real deployment URL,
+  or any other personal/identifying detail; use the existing fictional examples (`Ivy`, `Owen`,
+  `Carter`, `kin.example.com`) for anything that needs a concrete-looking example.
