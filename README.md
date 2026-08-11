@@ -4,6 +4,8 @@ A self-hosted calendar for tracking what each parent does for your kids — tran
 
 Built with Next.js (App Router) + better-sqlite3. Ships as a single Docker image, deployable on Coolify via the included `docker-compose.yml`.
 
+![Week view of the Kin calendar, showing color-coded events for two children across a week](docs/screenshot.png)
+
 ## What's inside
 
 - **Three views** — weekly grid, daily agenda, monthly overview.
