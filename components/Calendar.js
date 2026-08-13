@@ -421,7 +421,7 @@ export default function Calendar() {
   const [cursor, setCursor] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [modal, setModal] = useState(null); // {form, editingId, error} or null
+  const [modal, setModal] = useState(null); // {form, editingId, error, deleting, refocusDel} or null
   const triggerRef = useRef(null); // element to restore focus to when the modal closes
   const lastDefaults = useRef({ child_id: null, caregiver_id: null }); // sticky add defaults
   const [qa, setQa] = useState('');
@@ -902,13 +902,29 @@ export default function Calendar() {
     document.getElementById('evt-title')?.focus();
   }
 
-  async function remove() {
+  // Delete. A one-off (or a 1-row series) fires immediately, as before; a real repeating series asks
+  // for a scope first. `scope`: 'this' | 'following' | 'all'. The "apply to the whole series"
+  // checkbox is Save-only and is deliberately NOT consulted here.
+  async function remove(scope) {
     if (!modal.editingId) return;
     const f = modal.form;
-    const url =
-      modal.applySeries && f.series_id
-        ? `/api/events/series/${f.series_id}`
-        : `/api/events/${modal.editingId}`;
+    let url;
+    if (scope === 'all') {
+      url = `/api/events/series/${f.series_id}`;
+    } else if (scope === 'following') {
+      // Anchor on the STORED date, not modal.form.date — that one is live-bound to the date
+      // input, so an unsaved edit must not move the delete boundary. If the event has dropped out
+      // of `events` (e.g. deleted elsewhere and the modal is stale from a background refresh),
+      // there's no safe date to anchor on — refuse rather than guessing from the unsaved form.
+      const stored = events.find((e) => e.id === modal.editingId);
+      if (!stored) {
+        alert('This event has changed — reload and try again.');
+        return;
+      }
+      url = `/api/events/series/${f.series_id}?from=${stored.date}`;
+    } else {
+      url = `/api/events/${modal.editingId}`;
+    }
     let res;
     try {
       res = await fetch(url, { method: 'DELETE' });
@@ -963,6 +979,20 @@ export default function Calendar() {
   const repeat = modal?.repeat || EMPTY_REPEAT;
   // How many loaded events belong to the series being edited (drives the "apply to all" notice).
   const seriesCount = f && f.series_id ? events.filter((e) => e.series_id === f.series_id).length : 0;
+  // A 1-row series has no meaningful scope choice — Delete just fires, same as a one-off.
+  const isSeries = seriesCount > 1;
+  // Same stored-date anchor remove() uses, so the count on the button is exactly what gets deleted.
+  // No fallback to f.date here (unlike remove(), this is display-only): if the edited event has
+  // dropped out of `events`, delAnchor stays null and followingCount reads 0 rather than a count
+  // computed from an unsaved or stale date.
+  const delAnchor = modal?.editingId ? (events.find((e) => e.id === modal.editingId)?.date ?? null) : null;
+  // Gated on series_id + delAnchor, NOT on isSeries — isSeries can flip false from a background
+  // refresh (a sibling deleted elsewhere) while the anchor row itself is still present and would
+  // still be deleted by a click, so gating on it here would show a false "(0)".
+  const followingCount =
+    f && f.series_id && delAnchor
+      ? events.filter((e) => e.series_id === f.series_id && e.date >= delAnchor).length
+      : 0;
   const bf = backfill;
   // Read-only agenda: today + tomorrow (anchored to the real date, not the cursor),
   // each with its events in time order and the parent on duty.
@@ -1344,22 +1374,62 @@ export default function Calendar() {
                     onChange={(e) => setModal({ ...modal, applySeries: e.target.checked })}
                   />
                   <span>
-                    Apply to the whole repeating series
+                    Apply edits to the whole repeating series
                     {seriesCount > 1 ? ` (${seriesCount} events)` : ''}
                   </span>
                 </label>
               </div>
             )}
-            <div className="modal-actions">
-              {modal.editingId && (
-                <>
-                  <button className="btn btn-del" onClick={remove}>Delete</button>
-                  <button className="btn" onClick={duplicate}>Duplicate</button>
-                </>
-              )}
-              <button className="btn" onClick={() => setModal(null)}>Cancel</button>
-              <button className="btn btn-save" onClick={save}>Save</button>
-            </div>
+            {modal.deleting ? (
+              // The question sits INSIDE .modal-actions as a full-width flex item. As a sibling it
+              // was painted over: at ≤640px the bar is position:sticky with an opaque background
+              // (globals.css), so it lifts off the flow and covers the heading right above it —
+              // leaving four unlabelled destructive buttons on a phone. .modal-actions must stay a
+              // DIRECT child of .modal, or it loses that sticky rule altogether.
+              // autoFocus on Cancel: the focused Delete just unmounted, and without a replacement
+              // taking focus it falls to <body> and trapTab stops engaging — but the key that fires
+              // on an overlay you didn't expect shouldn't be a delete.
+              <div className="modal-actions" role="group" aria-labelledby="del-scope-q">
+                <div id="del-scope-q">Delete which events?</div>
+                <button className="btn btn-del" onClick={() => remove('this')}>
+                  This event
+                </button>
+                <button className="btn btn-del" onClick={() => remove('following')}>
+                  This + following ({followingCount})
+                </button>
+                <button className="btn btn-del" onClick={() => remove('all')}>
+                  All ({seriesCount})
+                </button>
+                <button
+                  className="btn"
+                  autoFocus
+                  onClick={() => setModal({ ...modal, deleting: false, refocusDel: true })}
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="modal-actions">
+                {modal.editingId && (
+                  <>
+                    {/* refocusDel is set only by the strip's Cancel, so Delete re-mounts with focus;
+                        undefined on a normal open, leaving the title input's autoFocus alone. */}
+                    <button
+                      className="btn btn-del"
+                      autoFocus={!!modal.refocusDel}
+                      onClick={() =>
+                        isSeries ? setModal({ ...modal, deleting: true }) : remove('this')
+                      }
+                    >
+                      Delete
+                    </button>
+                    <button className="btn" onClick={duplicate}>Duplicate</button>
+                  </>
+                )}
+                <button className="btn" onClick={() => setModal(null)}>Cancel</button>
+                <button className="btn btn-save" onClick={save}>Save</button>
+              </div>
+            )}
           </div>
         </div>
       )}

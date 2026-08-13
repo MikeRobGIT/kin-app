@@ -136,6 +136,55 @@ test('deleteSeriesTx on an unknown series returns 0', () => {
   assert.equal(deleteSeriesTx('nope'), 0);
 });
 
+test('deleteSeriesTx with a from date removes only that date onward, keeping earlier occurrences', () => {
+  const sid = 's_test_from';
+  createEventsBulk(
+    [
+      { ...sample(), date: '2026-11-02' },
+      { ...sample(), date: '2026-11-09' },
+      { ...sample(), date: '2026-11-16' },
+    ],
+    sid
+  );
+  const before = db.prepare('SELECT id FROM events WHERE series_id = ? AND date < ?').get(sid, '2026-11-09');
+  const n = deleteSeriesTx(sid, '2026-11-09');
+  assert.equal(n, 2);
+  const left = db.prepare('SELECT date FROM events WHERE series_id = ? ORDER BY date').all(sid);
+  assert.deepEqual(left.map((r) => r.date), ['2026-11-02']);
+  assert.deepEqual(auditFor(before.id), ['create']); // survivor got no delete snapshot
+});
+
+test('deleteSeriesTx from a date with two occurrences removes both (date-granular boundary)', () => {
+  const sid = 's_test_sameday';
+  createEventsBulk(
+    [
+      { ...sample(), date: '2026-12-01', time: '08:00' },
+      { ...sample(), date: '2026-12-08', time: '08:00' },
+      { ...sample(), date: '2026-12-08', time: '15:00' },
+    ],
+    sid
+  );
+  const n = deleteSeriesTx(sid, '2026-12-08');
+  assert.equal(n, 2);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events WHERE series_id = ?').get(sid).n, 1);
+});
+
+test('deleteSeriesTx from before the first occurrence deletes the whole series', () => {
+  const sid = 's_test_frombefore';
+  createEventsBulk([{ ...sample(), date: '2027-01-05' }, { ...sample(), date: '2027-01-12' }], sid);
+  const n = deleteSeriesTx(sid, '2027-01-01');
+  assert.equal(n, 2);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events WHERE series_id = ?').get(sid).n, 0);
+});
+
+test('deleteSeriesTx from after the last occurrence returns 0 and deletes nothing', () => {
+  const sid = 's_test_fromafter';
+  createEventsBulk([{ ...sample(), date: '2027-02-05' }], sid);
+  const n = deleteSeriesTx(sid, '2027-02-06');
+  assert.equal(n, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events WHERE series_id = ?').get(sid).n, 1);
+});
+
 test('audit rows carry a timestamp', () => {
   const row = createEvent(sample());
   const at = db.prepare('SELECT at FROM event_audit WHERE event_id = ? ORDER BY id').get(row.id).at;

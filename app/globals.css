@@ -123,6 +123,10 @@ main{padding:24px 32px 60px;}
 .seg input:checked+span{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .modal-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
 .modal-actions .btn{flex:1;text-align:center;padding:11px;}
+/* Full-width flex item so the delete-scope question takes its own line ABOVE the buttons and
+   travels with them when the bar goes position:sticky at ≤640px (:382). As a sibling of the bar
+   it was covered by the bar's opaque background. */
+#del-scope-q{flex:0 0 100%;}
 .btn-save{background:var(--ink);color:var(--paper);}
 .btn-del{border-color:var(--accent);color:var(--accent);}
 .btn-del:hover{background:var(--accent);color:#fff;}
