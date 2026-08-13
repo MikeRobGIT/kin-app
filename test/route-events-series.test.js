@@ -93,10 +93,20 @@ test('DELETE ?from= (empty string) returns 400 and deletes nothing', async () =>
   assert.equal(left(sid).length, 2);
 });
 
-test('DELETE ?from past the last occurrence returns 404 and deletes nothing', async () => {
+test('DELETE ?from past the last occurrence is a 200 no-op, not a 404', async () => {
+  // The series exists; the bound just matched nothing. 404 here would tell a client with stale
+  // counts that the whole series is gone.
   await createSession();
   const sid = seed(['2027-06-01']);
   const res = await del(sid, '?from=2099-01-01');
-  assert.equal(res.status, 404);
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), { deleted: 0 });
   assert.equal(left(sid).length, 1);
+});
+
+test('DELETE with no ?from on an unknown series still 404s', async () => {
+  // The unbounded case keeps its 404 — nothing to delete AND no series is genuinely not-found.
+  await createSession();
+  const res = await del('s_does_not_exist');
+  assert.equal(res.status, 404);
 });

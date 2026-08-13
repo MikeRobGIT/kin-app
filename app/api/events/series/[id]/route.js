@@ -43,6 +43,10 @@ export async function DELETE(request, { params }) {
     return NextResponse.json({ error: 'Invalid date' }, { status: 400 });
   }
   const n = deleteSeriesTx(id, from);
-  if (!n) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  // deleteSeriesTx returns 0 for two different things: an unknown series, and a known series with
+  // nothing at or after `from`. Only the first is a 404 — a bounded delete that matched no rows is
+  // a successful no-op, and reporting "Not found" for a series that plainly exists misleads a
+  // client whose counts went stale (a concurrent delete, or the 5-minute poll).
+  if (!n && from === null) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json({ deleted: n });
 }

@@ -30,6 +30,10 @@ docker-compose. Week / day / month views, color-coded by child and activity type
   `/settings`, not here.)
 - `app/api/events/route.js` — `GET` (list, optional `from`/`to` range) and `POST`.
 - `app/api/events/[id]/route.js` — `PUT` and `DELETE`.
+- `app/api/events/series/[id]/route.js` — whole-series `PUT`; `DELETE` takes an optional
+  `?from=YYYY-MM-DD` that narrows it to that date onward (the modal's "this and following"
+  scope). A bounded delete matching no rows is `200 {deleted:0}`; only an unbounded delete on
+  an unknown series is a 404.
 - `app/api/schedules/route.js` — `GET` → `{schedules, overrides}`, `POST`.
 - `app/api/schedules/[id]/route.js`, `app/api/overrides/route.js`,
   `app/api/overrides/[id]/route.js` — schedule + override CRUD.

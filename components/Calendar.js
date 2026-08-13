@@ -1381,29 +1381,33 @@ export default function Calendar() {
               </div>
             )}
             {modal.deleting ? (
-              // Fragment, so .modal-actions stays a DIRECT child of .modal and keeps the ≤640px
-              // sticky rule. autoFocus on the first button: the focused Delete just unmounted, and
-              // without a replacement taking focus it falls to <body> and trapTab stops engaging.
-              <>
+              // The question sits INSIDE .modal-actions as a full-width flex item. As a sibling it
+              // was painted over: at ≤640px the bar is position:sticky with an opaque background
+              // (globals.css), so it lifts off the flow and covers the heading right above it —
+              // leaving four unlabelled destructive buttons on a phone. .modal-actions must stay a
+              // DIRECT child of .modal, or it loses that sticky rule altogether.
+              // autoFocus on Cancel: the focused Delete just unmounted, and without a replacement
+              // taking focus it falls to <body> and trapTab stops engaging — but the key that fires
+              // on an overlay you didn't expect shouldn't be a delete.
+              <div className="modal-actions" role="group" aria-labelledby="del-scope-q">
                 <div id="del-scope-q">Delete which events?</div>
-                <div className="modal-actions" role="group" aria-labelledby="del-scope-q">
-                  <button className="btn btn-del" autoFocus onClick={() => remove('this')}>
-                    This event
-                  </button>
-                  <button className="btn btn-del" onClick={() => remove('following')}>
-                    This + following ({followingCount})
-                  </button>
-                  <button className="btn btn-del" onClick={() => remove('all')}>
-                    All ({seriesCount})
-                  </button>
-                  <button
-                    className="btn"
-                    onClick={() => setModal({ ...modal, deleting: false, refocusDel: true })}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
+                <button className="btn btn-del" onClick={() => remove('this')}>
+                  This event
+                </button>
+                <button className="btn btn-del" onClick={() => remove('following')}>
+                  This + following ({followingCount})
+                </button>
+                <button className="btn btn-del" onClick={() => remove('all')}>
+                  All ({seriesCount})
+                </button>
+                <button
+                  className="btn"
+                  autoFocus
+                  onClick={() => setModal({ ...modal, deleting: false, refocusDel: true })}
+                >
+                  Cancel
+                </button>
+              </div>
             ) : (
               <div className="modal-actions">
                 {modal.editingId && (
