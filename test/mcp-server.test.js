@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
 import { z } from 'zod';
+import { PD_KEYS } from '../lib/constants.js';
 
 let registerKinTools, TOOL_NAMES;
 
@@ -64,5 +65,25 @@ test('event schema accepts a null caregiver_id (unassigned round-trip)', () => {
     const shape = s.tools.get(name).config.inputSchema;
     const r = z.object(shape).safeParse({ ...base, caregiver_id: null });
     assert.equal(r.success, true, `${name} should accept caregiver_id: null`);
+  }
+});
+
+// The pd enum in lib/mcp-server.js is a hardcoded literal while get_context advertises PD_KEYS
+// (derived). Without this pin the two drift silently: the whole suite stays green while an agent
+// offered a documented trip kind gets rejected at the schema boundary.
+test('the event schema accepts every advertised trip kind and nothing else', () => {
+  const s = fakeServer();
+  registerKinTools(s);
+  const base = { id: 'e1', title: 'School', type: 'school', child_id: 'c1', date: '2026-06-14', time: '08:00' };
+  for (const name of ['update_event', 'log_event']) {
+    const shape = s.tools.get(name).config.inputSchema;
+    for (const pd of PD_KEYS) {
+      assert.equal(
+        z.object(shape).safeParse({ ...base, pd }).success,
+        true,
+        `${name} should accept pd: ${pd} (advertised by get_context.pdKinds)`
+      );
+    }
+    assert.equal(z.object(shape).safeParse({ ...base, pd: 'sideways' }).success, false);
   }
 });

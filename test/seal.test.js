@@ -74,6 +74,14 @@ test('an event without a pickup parent seals byte-identically (old seals still v
   assert.ok(!withNull.canonical.includes('pickup_caregiver_id'));
 });
 
+test('a leg-less trip seals distinctly from a drop-off (a later flip reads as tampering)', () => {
+  const drop = sealMonth('2026-06', [ev({ pd: 'dropoff' })], [schedule], [], SECRET);
+  const none = sealMonth('2026-06', [ev({ pd: 'none' })], [schedule], [], SECRET);
+  assert.notEqual(drop.sha256, none.sha256);
+  // Sealing a stay-home day and then quietly turning it into a day someone drove must not verify.
+  assert.equal(verifySeal({ month: '2026-06', ...none }, [ev({ pd: 'dropoff' })], [schedule], [], SECRET).match, false);
+});
+
 test('a distinct pickup parent is sealed and changes the digest', () => {
   const base = sealMonth('2026-06', [ev({ pd: 'both' })], [schedule], [], SECRET);
   const split = sealMonth(

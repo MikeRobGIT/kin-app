@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'node:fs';
+import { PD_KEYS } from '../lib/constants.js';
 
 let db, createEvent, updateEventTx, deleteEventTx, createEventsBulk, updateSeriesTx, deleteSeriesTx;
 
@@ -220,4 +221,43 @@ test('pickup_caregiver_id is stored only for a distinct both-trip pickup parent'
   assert.equal(drop.pickup_caregiver_id, null); // single-leg trip ignores pickup
   const care = createEvent({ ...sample(), type: 'meal', caregiver_id: 'g1', pickup_caregiver_id: 'g2' });
   assert.equal(care.pickup_caregiver_id, null); // non-trip care ignores pickup
+});
+
+test("a leg-less trip stores pd='none' and no pickup parent", () => {
+  // Runs against a REAL migrated DB, so this goes red three separate ways: migration 14 missing
+  // (SQLITE_CONSTRAINT on the old CHECK), normalize() mangling 'none', or the pickup guard regressing.
+  const row = createEvent({ ...sample(), pd: 'none', caregiver_id: 'g1', pickup_caregiver_id: 'g2' });
+  assert.equal(row.pd, 'none');
+  assert.equal(row.pickup_caregiver_id, null);
+});
+
+test("a non-trip type still stores the inert filler pd='dropoff'", () => {
+  // Deliberate, not a bug: seal.js serializes pd unconditionally, so caregiving rows must keep the
+  // value they have always had or every already-sealed month stops verifying.
+  assert.equal(createEvent({ ...sample(), type: 'meal', pd: 'none' }).pd, 'dropoff');
+});
+
+test('every declared trip kind round-trips through the write layer', () => {
+  // Binds the JS domain (PD_KEYS, which lib/validate.js delegates to entirely) to the SQL CHECK,
+  // which lives in another language in another file with nothing else tying the two together. A
+  // future PD entry added without a migration would validate cleanly, then throw
+  // SQLITE_CONSTRAINT_CHECK out of an unguarded route handler.
+  for (const k of PD_KEYS) {
+    assert.equal(createEvent({ ...sample(), pd: k }).pd, k, `pd '${k}' should persist`);
+  }
+});
+
+test('a series edit applies a leg-less trip kind to every occurrence', () => {
+  // normalize() has four call sites; the series path has the largest blast radius on the record.
+  const n = createEventsBulk(
+    [
+      { ...sample(), date: '2026-09-01' },
+      { ...sample(), date: '2026-09-02' },
+    ],
+    'ser-none'
+  );
+  assert.equal(n, 2);
+  assert.equal(updateSeriesTx('ser-none', { ...sample(), pd: 'none' }), 2);
+  const rows = db.prepare('SELECT pd FROM events WHERE series_id = ?').all('ser-none');
+  assert.deepEqual(rows.map((r) => r.pd), ['none', 'none']);
 });

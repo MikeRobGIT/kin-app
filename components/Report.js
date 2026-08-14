@@ -172,7 +172,7 @@ export default function Report() {
     lines.push(`Range,${esc(from)} to ${esc(to)}`);
     lines.push(`Child,${esc(childId ? childName(childId) : 'All children')}`);
     lines.push(
-      'Note,A shared trip (drop-off by one parent, pickup by the other) credits each parent once, so parent totals count trips/care performed and can exceed the number of logged events.'
+      'Note,A shared trip (drop-off by one parent, pickup by the other) credits each parent once, so parent totals count trips/care performed and can exceed the number of logged events. An activity marked (NONE) involved no drop-off or pickup — it counts once as care, not as a trip.'
     );
     lines.push('');
     lines.push(
@@ -204,7 +204,10 @@ export default function Report() {
         [
           e.date,
           e.time,
-          TYPES[e.type]?.label || e.type,
+          // Carry the same trip-kind suffix the on-screen table shows. Without it a leg-less
+          // School (NONE) row exports byte-identical to a real drop-off — and the CSV is the
+          // likeliest handoff path off this app.
+          (TYPES[e.type]?.label || e.type) + (TYPES[e.type]?.trip ? ` (${PD[e.pd] || ''})` : ''),
           childName(e.child_id),
           doneBy(e),
           e.updated_at ? `${fmtRecorded(e.created_at)} (edited ${fmtRecorded(e.updated_at)})` : fmtRecorded(e.created_at),
@@ -417,6 +420,8 @@ export default function Report() {
           <p className="report-note">
             A shared trip (drop-off by one parent, pickup by the other) credits each parent once, so
             these counts reflect trips/care performed and can exceed the number of logged events below.
+            An activity marked (NONE) involved no drop-off or pickup — it counts once as care, not as
+            a trip.
           </p>
           <div className="table-scroll">
           <table className="report-table">
@@ -507,7 +512,9 @@ export default function Report() {
           <p className="report-note">
             Seal a month to lock in a tamper-evident SHA-256 + HMAC over its events and overnight
             split. Re-sealing keeps prior seals as history; Verify recomputes and reports whether the
-            month still matches its latest seal.
+            month still matches its latest seal. Correcting an already-sealed month — including
+            changing a recorded drop-off to No trip — will correctly report that month as changed;
+            the edit itself is kept in the audit log, so re-seal to record the corrected state.
           </p>
           <div className="report-controls no-print">
             <label>

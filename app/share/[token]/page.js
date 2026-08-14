@@ -127,6 +127,8 @@ export default async function SharePage({ params }) {
           <p className="report-note">
             A shared trip (drop-off by one parent, pickup by the other) credits each parent once, so
             these counts reflect trips/care performed and can exceed the number of logged events below.
+            An activity marked (NONE) involved no drop-off or pickup — it counts once as care, not as
+            a trip.
           </p>
           <div className="table-scroll">
           <table className="report-table">

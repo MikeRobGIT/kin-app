@@ -74,6 +74,10 @@ const EMPTY = {
 // Add-modal "Repeat" defaults: no weekdays = one-off. weekdays present = recurring.
 const EMPTY_REPEAT = { weekdays: [], interval: 1, endType: 'until', until: '', count: 10 };
 
+// Sentence-case radio labels for the Trip control (.seg uppercases them in CSS). Keep every label a
+// SINGLE word — a `flex:1` segment breaks a two-word label at the space and grows the row.
+const PD_LABEL = { dropoff: 'Drop-off', pickup: 'Pickup', both: 'Both', none: 'None' };
+
 // The caregiver line on a chip. A split two-leg trip (pd='both' with a distinct pickup parent)
 // tags each parent with its DROP / PICK direction; every other event shows the single "Done by"
 // parent exactly as before. Shared by the calendar Chip and the agenda list so they never diverge.
@@ -1153,12 +1157,12 @@ export default function Calendar() {
                 value={f.type}
                 onChange={(e) => setModal({ ...modal, form: { ...f, type: e.target.value } })}
               >
-                <optgroup label="Transport">
+                <optgroup label="Transport — has a drop-off / pickup">
                   {Object.entries(TYPES).filter(([, t]) => t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}
                 </optgroup>
-                <optgroup label="Caregiving">
+                <optgroup label="Caregiving — no drop-off or pickup">
                   {Object.entries(TYPES).filter(([, t]) => !t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}
@@ -1181,7 +1185,7 @@ export default function Calendar() {
             <div className="field" role="group" aria-labelledby="trip-label">
               <label id="trip-label">Trip</label>
               <div className="seg">
-                {['dropoff', 'pickup', 'both'].map((v) => (
+                {['dropoff', 'pickup', 'both', 'none'].map((v) => (
                   <label key={v}>
                     <input
                       type="radio"
@@ -1189,7 +1193,7 @@ export default function Calendar() {
                       checked={f.pd === v}
                       onChange={() => setModal({ ...modal, form: { ...f, pd: v } })}
                     />
-                    <span>{v === 'dropoff' ? 'Drop-off' : v === 'pickup' ? 'Pickup' : 'Both'}</span>
+                    <span>{PD_LABEL[v]}</span>
                   </label>
                 ))}
               </div>
@@ -1197,9 +1201,15 @@ export default function Calendar() {
             )}
             <div className="field">
               {/* Trip 'both' splits the legs into two parent slots below; otherwise one parent
-                  covers the whole entry (drop-off, pickup, or a non-trip care task). */}
+                  covers the whole entry (drop-off, pickup, a leg-less trip, or a non-trip care
+                  task). Trip 'none' reads "Done by" too — the stay-home day still has a
+                  responsible parent, there just wasn't a drive. */}
               <label htmlFor="evt-caregiver">
-                {!isTrip(f.type) ? 'Done by' : f.pd === 'pickup' ? 'Pickup by' : 'Drop-off by'}
+                {!isTrip(f.type) || f.pd === 'none'
+                  ? 'Done by'
+                  : f.pd === 'pickup'
+                    ? 'Pickup by'
+                    : 'Drop-off by'}
               </label>
               <select
                 id="evt-caregiver"
@@ -1460,12 +1470,12 @@ export default function Calendar() {
                 value={bf.base.type}
                 onChange={(e) => setBackfill({ ...bf, base: { ...bf.base, type: e.target.value } })}
               >
-                <optgroup label="Transport">
+                <optgroup label="Transport — has a drop-off / pickup">
                   {Object.entries(TYPES).filter(([, t]) => t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}
                 </optgroup>
-                <optgroup label="Caregiving">
+                <optgroup label="Caregiving — no drop-off or pickup">
                   {Object.entries(TYPES).filter(([, t]) => !t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}
@@ -1487,7 +1497,7 @@ export default function Calendar() {
               </div>
               <div className="field">
                 <label htmlFor="bf-caregiver">
-                  {!isTrip(bf.base.type)
+                  {!isTrip(bf.base.type) || bf.base.pd === 'none'
                     ? 'Done by'
                     : bf.base.pd === 'pickup'
                       ? 'Pickup by'
@@ -1509,7 +1519,7 @@ export default function Calendar() {
               <div className="field" role="group" aria-labelledby="bf-trip-label">
                 <label id="bf-trip-label">Trip</label>
                 <div className="seg">
-                  {['dropoff', 'pickup', 'both'].map((v) => (
+                  {['dropoff', 'pickup', 'both', 'none'].map((v) => (
                     <label key={v}>
                       <input
                         type="radio"
@@ -1517,7 +1527,7 @@ export default function Calendar() {
                         checked={bf.base.pd === v}
                         onChange={() => setBackfill({ ...bf, base: { ...bf.base, pd: v } })}
                       />
-                      <span>{v === 'dropoff' ? 'Drop-off' : v === 'pickup' ? 'Pickup' : 'Both'}</span>
+                      <span>{PD_LABEL[v]}</span>
                     </label>
                   ))}
                 </div>

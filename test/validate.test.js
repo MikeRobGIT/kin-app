@@ -46,7 +46,11 @@ test('validateEventFields enforces required, type, pd, dates, caps', () => {
   assert.equal(validateEventFields({ ...base, date: '2026-02-30' }), 'Invalid date');
   assert.equal(validateEventFields({ ...base, time: '99:99' }), 'Invalid time');
   assert.equal(validateEventFields({ ...base, notes: 'x'.repeat(LIMITS.notes + 1) }), 'Notes too long');
-  // non-trip type ignores pd
+  // 'none' — a trip-typed activity that carried no leg this time (a school day spent at home)
+  assert.equal(validateEventFields({ ...base, pd: 'none' }), null);
+  // non-trip type ignores pd. This stays ONE-DIRECTIONAL on purpose, unlike
+  // validateSubscriptionPatch: the add/edit modal POSTs its whole form and always populates pd, so
+  // rejecting a stale pd on a caregiving type here would 400 every single Caregiving save.
   assert.equal(validateEventFields({ ...base, type: 'meal', pd: 'whatever' }), null);
 });
 
@@ -210,4 +214,25 @@ test('validateSubscriptionPatch validates the MERGED row, not just the supplied 
   );
   // '' and null both mean "no leg" and stay acceptable.
   assert.equal(validateSubscriptionPatch({ ...base, type: 'meal', pd: '' }, subDb), null);
+});
+
+test("a subscription cannot be set leg-less — 'none' is an event-level trip kind", () => {
+  // pd='none' is valid on an EVENT but must never reach a whole feed: sync stamps the
+  // subscription's pd on every row it imports, so a school feed set to 'none' would silently strip
+  // the transport leg off a year of real school runs. Unreachable from Settings; this closes the
+  // raw-API path on both the create and the patch validator.
+  const msg = 'A feed cannot be leg-less — set No trip on the individual event';
+  assert.equal(
+    validateSubscription({ url: 'https://x/y.ics', type: 'school', pd: 'none', child_id: 'c1' }, subDb),
+    msg
+  );
+  assert.equal(
+    validateSubscriptionPatch({ child_id: null, child_map: {}, type: 'school', pd: 'none' }, subDb),
+    msg
+  );
+  // The three real feed-level kinds still pass, so the guard is narrow.
+  assert.equal(
+    validateSubscription({ url: 'https://x/y.ics', type: 'school', pd: 'both', child_id: 'c1' }, subDb),
+    null
+  );
 });

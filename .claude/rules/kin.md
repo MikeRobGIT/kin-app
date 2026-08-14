@@ -18,6 +18,25 @@
   rebuild must keep a row-count guard and rely on the runner's FK-off + `foreign_key_check`.
 - A migration that can orphan FK rows must repair (→ NULL) or abort with an actionable error —
   an unrepaired orphan crash-loops the container on boot. (Real: caregiver_id/child_id orphans.)
+- **A rebuild of `events` needs a per-column drift guard, not just a row count.** `lib/seal.js` seals
+  `pd`, `created_at` and `updated_at` RAW, so a stray `COALESCE` or a fired
+  `DEFAULT (datetime('now'))` silently invalidates every prior month seal — with no error anywhere.
+  Demonstrated on v14: a rebuild that omitted `created_at` from the INSERT column list passed the
+  row-count guard 4→4 unchanged, and `foreign_key_check` is blind to it (as it is to a lost NOT NULL
+  or PRIMARY KEY). Copy every column by explicit name with no expression, compare old vs new
+  per column with NULL-safe `IS NOT` before the DROP, and throw on the first difference. Also
+  recreate EVERY index — `DROP TABLE` takes them, and nothing in the suite asserted `idx_events_date`
+  or `idx_events_series` existed before v14. Never copy an older rebuild's DDL verbatim: migration
+  4's was five columns short by the time v14 landed, so v14 also pre-flights `PRAGMA table_info`
+  against its own list and throws on an unknown column.
+- **`events.type` has no CHECK anywhere** (baseline, and migration 4's rebuild) while `pd` does —
+  that asymmetry is why a type-side change is migration-free and any pd-side change costs a full
+  rebuild of the legal-record table. If a further per-event flag is ever needed, prefer
+  `ALTER TABLE events ADD COLUMN <flag> INTEGER NOT NULL DEFAULT 0` (the in-place v13 `ical_key`
+  precedent), sealed with a CONDITIONAL spread `...(e.flag ? { flag: 1 } : {})` — mandatory there,
+  because the ALTER gives every legacy row a value that would otherwise inject `"flag":0` into every
+  already-sealed month. That spread is *forbidden* for `pd`, which has been an unconditional NOT NULL
+  key since the seal shipped and so has no legacy serialization to preserve.
 - **When a migration adds a persisted table, also add it to `lib/export.js buildExport`** — it claims
   a "complete dump" but enumerates a fixed table list, so new tables are silently dropped from the
   backup/handoff (the v5 schedule tables were missing; month_seals would have been). (IB-05 #9, codex.)

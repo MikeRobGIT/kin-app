@@ -72,6 +72,20 @@ test('a pickup parent is ignored unless the trip is both-legs', () => {
   assert.equal(drop.buckets.g2, undefined);
 });
 
+test('a leg-less trip credits exactly one entry to the Done-by parent', () => {
+  // pd='none' is a trip TYPE with no legs. eventLegs() gates the two-leg split on pd==='both', so
+  // it must take the single-credit branch even with a stray pickup parent — a leg-less day can
+  // never fabricate a second parent's trip on a custody record.
+  const r = summarizeInvolvement(
+    [ev({ type: 'school', pd: 'none', caregiver_id: 'g1', pickup_caregiver_id: 'g2' })],
+    CGS
+  );
+  assert.equal(r.grand, 1);
+  assert.equal(r.buckets.g1.total, 1);
+  assert.equal(r.buckets.g1.byType.school, 1);
+  assert.equal(r.buckets.g2, undefined);
+});
+
 test('a split trip with an unassigned drop-off credits Unassigned + the pickup parent', () => {
   const r = summarizeInvolvement(
     [ev({ pd: 'both', caregiver_id: null, pickup_caregiver_id: 'g2' })],

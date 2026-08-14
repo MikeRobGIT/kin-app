@@ -80,7 +80,17 @@ resolved from the full roster). Event *create* requires active members; *edit* i
 parent is refused (409).
 `events(id, title, type, child_id, caregiver_id, pickup_caregiver_id, pd, date, time, who, notes,
 created_at, updated_at, series_id)`.
-`pd` is one of `dropoff | pickup | both`. `date` is `YYYY-MM-DD`, `time` is `HH:MM`.
+`pd` is one of `dropoff | pickup | both | none` (migration v14). `date` is `YYYY-MM-DD`, `time` is
+`HH:MM`. `none` is a **trip-typed** activity that carried zero legs on that occasion — a school day
+the child never left home, a camp week the bus collected her, teletherapy. It keeps the event's real
+activity type instead of misfiling it as caregiving, credits one entry to the Done-by parent like any
+care task, and renders as `School (NONE)`. It is an EVENT-level kind only: `lib/validate.js` refuses
+it on an iCal subscription, since sync stamps a feed's `pd` on every row it imports.
+**A non-trip (caregiving) row is a different thing: it stores the inert filler `pd='dropoff'`, and
+that can never be migrated away.** `lib/seal.js` serializes `pd` *unconditionally* (unlike its
+conditional `pickup_caregiver_id` spread) and `month_seals` stores only sha256/hmac, never the
+canonical string — so an `UPDATE` "cleaning up" the filler would report every month containing a
+single meal or bedtime row as tampered, unrecoverably.
 `caregiver_id` is "Done by" / the drop-off (or sole-leg) parent; `pickup_caregiver_id` (migration v10)
 is a distinct pickup-leg parent, persisted only for a trip with `pd='both'` when it differs from
 `caregiver_id` (else NULL). A split `both` trip credits each parent one leg in the involvement report

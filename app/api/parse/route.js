@@ -56,8 +56,8 @@ Trip kinds for "pd" (ONLY when the chosen type has trip=true): ${JSON.stringify(
 Rules:
 - child_id: match the child by name. If you cannot match a child, return {"error":"which child?"}.
 - caregiver_id: who did it. "I"/"me"/"my"/"myself" -> "${primaryCg}". Match other names to a caregiver id; if unknown, use "".
-- type: the single best-matching activity key. Driving/taking/dropping/picking up to a place (school, practice, appointment) is a trip type; hands-on care (meals, bedtime, bath, homework, etc.) is a caregiving type. If nothing fits, "other".
-- pd: only when the chosen type has trip=true. "took"/"dropped off" -> "dropoff"; "picked up" -> "pickup"; "to and from"/"both ways" -> "both". For non-trip types use null.
+- type: the single best-matching activity key. Driving/taking/dropping/picking up to a place (school, practice, appointment) is a trip type; hands-on care (meals, bedtime, bath, homework, etc.) is a caregiving type. If nothing fits, "other". An activity can still be a trip type when NOBODY drove — a school day spent learning from home, a camp week the bus collected her, a practice another family drove. Keep the real activity type in that case and set pd to "none"; do NOT switch to a caregiving type.
+- pd: only when the chosen type has trip=true. "took"/"dropped off" -> "dropoff"; "picked up" -> "pickup"; "to and from"/"both ways" -> "both". An EXPLICIT statement that no drop-off or pickup happened ("nobody drove her", "no drop-off or pickup", "learning from home all day", "took the bus", "another family drove") -> "none"; if the note does not say so explicitly, never use "none" — pick the leg that happened. For non-trip types use null.
 - date: resolve relative dates ("today","yesterday","last monday") to YYYY-MM-DD vs today; default today.
 - time: "HH:MM" 24h if mentioned, else "08:00".
 - title: short label, e.g. "School drop-off", "Dinner", "Dentist".

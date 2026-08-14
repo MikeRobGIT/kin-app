@@ -22,7 +22,7 @@ test('getContext exposes the seeded children, caregivers, types, and pd kinds', 
   assert.deepEqual(c.children.map((x) => x.id), ['c1', 'c2']);
   assert.deepEqual(c.caregivers.map((x) => x.id), ['g1', 'g2']);
   assert.ok(c.types.find((t) => t.key === 'school' && t.trip === true));
-  assert.deepEqual(c.pdKinds, ['dropoff', 'pickup', 'both']);
+  assert.deepEqual(c.pdKinds, ['dropoff', 'pickup', 'both', 'none']);
 });
 
 test('logEvent creates a row and one create audit entry', () => {

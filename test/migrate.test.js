@@ -99,7 +99,8 @@ test('migration 4 preserves rows and enforces child_id RESTRICT', () => {
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events').get().n, 1);
 });
 
-test('migration 4 CHECK rejects an invalid pd', () => {
+// Widened by migration 14 to also allow 'none'; 'sideways' must still be refused.
+test('the events pd CHECK rejects an invalid pd', () => {
   const db = freshDb();
   runMigrations(db);
   db.prepare("INSERT INTO children (id,name,color,sort) VALUES ('c1','Ivy','#000',0)").run();
