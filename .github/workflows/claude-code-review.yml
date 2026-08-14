@@ -36,7 +36,24 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # `--comment` is REQUIRED for this to post anything. Step 7 of the code-review command
+          # ends with "If --comment was NOT provided, stop here. Do not post any GitHub comments."
+          # Without it the review runs, prints its findings to the (hidden) action log, and exits —
+          # so the check goes green having told nobody anything.
+          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }} --comment'
+          # Equally required. In agent mode the action parses --allowedTools out of claude_args and
+          # uses it to decide which of ITS OWN MCP servers to install: github_inline_comment is only
+          # registered when the list names an mcp__github_inline_comment__* tool (see
+          # src/mcp/install-mcp-server.ts). With claude_args unset the posting tool therefore does
+          # not exist at all, and every `gh` call the command makes is denied — observed on PR #8 as
+          # 13 permission denials, 10 turns, "No buffered inline comments", conclusion success.
+          # The list mirrors the plugin command's own `allowed-tools:` frontmatter, plus the
+          # read-only tools its subagents need to open CLAUDE.md and the changed files.
+          claude_args: |
+            --allowedTools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),mcp__github_inline_comment__create_inline_comment,Read,Glob,Grep,LS,Task,TodoWrite"
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
+          #
+          # Debugging note: the action hides Claude's message stream. `show_full_output: true` reveals
+          # it, but it dumps every tool RESULT into a public log — do not leave it enabled here.
 
