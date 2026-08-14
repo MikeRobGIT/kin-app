@@ -1157,7 +1157,7 @@ export default function Calendar() {
                 value={f.type}
                 onChange={(e) => setModal({ ...modal, form: { ...f, type: e.target.value } })}
               >
-                <optgroup label="Transport — has a drop-off / pickup">
+                <optgroup label="Transport — asks about a drop-off / pickup">
                   {Object.entries(TYPES).filter(([, t]) => t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}
@@ -1470,7 +1470,7 @@ export default function Calendar() {
                 value={bf.base.type}
                 onChange={(e) => setBackfill({ ...bf, base: { ...bf.base, type: e.target.value } })}
               >
-                <optgroup label="Transport — has a drop-off / pickup">
+                <optgroup label="Transport — asks about a drop-off / pickup">
                   {Object.entries(TYPES).filter(([, t]) => t.trip).map(([k, t]) => (
                     <option key={k} value={k}>{t.label}</option>
                   ))}

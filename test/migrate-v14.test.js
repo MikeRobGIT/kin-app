@@ -184,10 +184,58 @@ test('the column pre-flight guard aborts the rebuild and rolls back', () => {
   db.exec('ALTER TABLE events ADD COLUMN future_col TEXT');
 
   assert.throws(() => runMigrations(db), /would drop column\(s\): future_col/);
-  // The runner wraps each migration in a transaction, so the DROP/RENAME rolled back entirely.
+  // The pre-flight runs before any DDL, so nothing was attempted — no events_new, no DROP. The
+  // runner's transaction is what keeps user_version from advancing past the throw.
   assert.equal(db.pragma('user_version', { simple: true }), 13);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events').get().n, 1);
   assert.ok(db.prepare('PRAGMA table_info(events)').all().some((c) => c.name === 'future_col'));
+  assert.equal(
+    db.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE name='events_new'").get().n,
+    0
+  );
+  db.close();
+});
+
+// The two guards BELOW the pre-flight are the ones that actually protect month seals, and neither
+// fires on any well-formed input — so without these tests, deleting either leaves the suite green.
+// Both drive the real migration function and corrupt only its copy statement, which is exactly the
+// class of mistake they exist to catch (a rebuild that quietly rewrites or loses a row).
+function withMutatedCopy(db, mutate) {
+  const realExec = db.exec.bind(db);
+  db.exec = (sql) => {
+    if (!sql.includes('INSERT INTO events_new')) return realExec(sql);
+    const i = sql.indexOf('SELECT id'); // mutate the SELECT list only, never the column list
+    return realExec(sql.slice(0, i) + mutate(sql.slice(i)));
+  };
+}
+
+test('the drift guard aborts a rebuild that rewrites a sealed column', () => {
+  const db = v13Db();
+  db.prepare(
+    `INSERT INTO events (id,title,type,child_id,pd,date,time,created_at)
+     VALUES ('e1','School run','school','c1','dropoff','2026-08-03','08:00','2026-01-02 03:04:05')`
+  ).run();
+  // Stand in for a fired DEFAULT / stray COALESCE: the copy silently changes a sealed value.
+  withMutatedCopy(db, (select) => select.replace(',title,', ",'MUTATED',"));
+
+  assert.throws(() => migrations[13](db), /altered 1 row\(s\).*seal safety/);
+  // It threw BEFORE the DROP, so the real table is still there and still correct.
+  assert.equal(db.prepare("SELECT title FROM events WHERE id='e1'").get().title, 'School run');
+  db.close();
+});
+
+test('the row-count guard aborts a rebuild that drops a row', () => {
+  const db = v13Db();
+  for (const id of ['e1', 'e2']) {
+    db.prepare(
+      `INSERT INTO events (id,title,type,child_id,pd,date,time,created_at)
+       VALUES (?,'School run','school','c1','dropoff','2026-08-03','08:00','2026-01-02 03:04:05')`
+    ).run(id);
+  }
+  withMutatedCopy(db, (select) => select.replace('FROM events', "FROM events WHERE id <> 'e1'"));
+
+  assert.throws(() => migrations[13](db), /row mismatch: 2 -> 1/);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM events').get().n, 2);
   db.close();
 });
 
