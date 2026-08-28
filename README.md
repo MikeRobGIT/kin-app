@@ -58,9 +58,15 @@ export AUTH_SECRET=$(openssl rand -hex 32)
 npm run dev
 ```
 
-## Changing the children
+## Managing the family
 
-The two kids are seeded once, on the first run, in `lib/db.js`. To rename them or change colors before deploying, edit the two `insert.run(...)` lines. After the database already exists, update the `children` table directly (e.g. with `sqlite3 data/tracker.db`).
+Two children and two parents are seeded as placeholders when a new database is created. Manage them in **⚙ Settings → Family**:
+
+- Add children or parents.
+- Rename them or change their colors.
+- Archive members who should no longer appear in new event and schedule pickers.
+
+Kin keeps member IDs stable so historical events, reports, schedules, and sealed months remain valid. For that reason, removal means **archive**, not delete. Do not edit or delete family rows directly with `sqlite3`. Kin also prevents archiving the last active child or parent.
 
 ## Parent-time scheduling
 
@@ -72,8 +78,9 @@ Click **⧉ Parent time** to define which parent has the kids:
   date-bounded rotation (e.g. a summer block) under "Limit to a date range."
 - **Holidays & overrides** — add date ranges (Thanksgiving, spring break, a swap)
   that take precedence over the rotation.
-- **Parents** — rename and recolor the two parents; the change flows through the
-  calendar, legend, and report.
+Family roster changes live in **⚙ Settings → Family**. Rotation and override
+parent selectors list active parents only; archived parents remain visible in historical
+calendar entries and reports.
 
 The on-duty parent appears as a band in week view, a banner in day view, and a
 tint + initial in month view. The **Schedule** toggle hides it. Nothing is stored
